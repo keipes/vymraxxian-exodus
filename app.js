@@ -27,7 +27,8 @@
         explAudio,
         sounds = {
             explosion: 'res/162792__timgormly__8-bit-explosion1.wav',
-            shoot: 'res/215438__taira-komori__shoot02.mp3'
+            shoot: 'res/215438__taira-komori__shoot02.mp3',
+            music: 'res/239539__dambient__8-bit-loop.mp3'
         };
 
     function main() {
@@ -74,7 +75,7 @@
             curKeys[e.which] = false;
         });
         // awesome music!
-        audio = new Audio('res/The Crucis Fiasco.wav');
+        audio = new Audio(sounds.music);
         audio.play();
 
         // start up logic and render loops
