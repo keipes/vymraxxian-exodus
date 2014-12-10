@@ -8,6 +8,7 @@
             e: '#FD7400',
             black: '#000'
         },
+        resourceRoot = 'res/',
         c, // canvas
         ctx, // canvas context
         tickRateMS = (1000 / 60),
@@ -20,15 +21,22 @@
         muted = false,
         muteIcon,
         muteIcons = {
-            active: 'res/glyphicons_free/glyphicons/png/glyphicons-185-volume-up.png',
-            inactive: 'res/glyphicons_free/glyphicons/png/glyphicons-183-mute.png'
+            active: resourceRoot + 'glyphicons_free/glyphicons/png/glyphicons-185-volume-up.png',
+            inactive: resourceRoot + 'glyphicons_free/glyphicons/png/glyphicons-183-mute.png'
         },
         audio,
         explAudio,
         sounds = {
-            explosion: 'res/162792__timgormly__8-bit-explosion1.wav',
-            shoot: 'res/215438__taira-komori__shoot02.mp3',
-            music: 'res/239539__dambient__8-bit-loop.mp3'
+            explosion: resourceRoot + '162792__timgormly__8-bit-explosion1.wav',
+            shoot: resourceRoot + '215438__taira-komori__shoot02.mp3',
+            music: resourceRoot + '239539__dambient__8-bit-loop.mp3'
+        },
+        images = {
+            ship: resourceRoot + 'CE6_spaceship_mer.png',
+            starfield: resourceRoot + 'Star-field-3-Desktop-Wallpaper.jpg',
+            flare: resourceRoot + 'flare.png',
+            explosion: resourceRoot + 'lvxdmali.png',
+            dust: resourceRoot + 'PEnJm.png',
         };
 
     function main() {
@@ -42,7 +50,7 @@
         muteIcon = document.getElementById('mute-icon');
         muteIcon.src = muteIcons.active;
 
-        scene.push(new Ship('res/CE6_spaceship_mer.png'));
+        scene.push(new Ship(images.ship));
         scene.push(new Text([
             'Greetings cadet!',
             'Times are dark for the empire and',
@@ -52,30 +60,29 @@
             '',
             'Arm your blasters and prepare for BATTLE!']));
         flareImg = new Image();
-        flareImg.src = 'res/flare.png';
+        flareImg.src = images.flare;
         bgImg = new Image();
-        bgImg.src = 'res/Star-field-3-Desktop-Wallpaper.jpg';
+        bgImg.src = images.starfield;
         bgImg.style.filter = "alpha(opacity=40);";
         bgImg.style.opacity = 0.4;
 
         explImg = new Image();
-        explImg.src = 'res/lvxdmali.png';
+        explImg.src = images.explosion;
 
         dustImg = new Image();
         // dustImg.src = 'res/asfalt-dark.png';
         // dustImg.src = 'res/stock-footage-loopable-old-film-style-overlay-effect-contains-medium-film-grain-scratches-dust-hairs-stains.jpg';
-        dustImg.src = 'res/PEnJm.png';
+        dustImg.src = images.dust;
         // watch keys:
         window.addEventListener('keydown', function(e) {
-            console.log(e.which);
             curKeys[e.which] = true;
         });
         window.addEventListener('keyup', function(e) {
-            console.log(e.which);
             curKeys[e.which] = false;
         });
         // awesome music!
         audio = new Audio(sounds.music);
+        audio.loop = true;
         audio.play();
 
         // start up logic and render loops
@@ -86,12 +93,13 @@
     var Ship = function(src) {
         var img = new Image(),
             rotation = 90,
-            shotCooldownMS = 30,
+            shotCooldownMS = 100,
             shotTS = -Infinity,
             x = c.width / 2,
             y = c.height / 2,
             velocity = 4,
-            shipLength = 100;
+            shipLength = 100,
+            inaccuracyModifier = 10; // degrees
 
         img.src = src;
 
@@ -114,6 +122,7 @@
                 }
             },
             update: function() {
+                // shotCooldownMS = 200 + (Math.random() * 200 - 100); // variable cooldown?
                 if (curKeys[39]) {
                     //right
                     this.rotate(4);
@@ -154,7 +163,8 @@
                         var pY = y - datY * shipLength / 2,
                             pX = x - datX * shipLength / 2;
                         window.setTimeout(function() {
-                            scene.unshift(new Projectile(pX, pY, rotation, vX, vY));
+                            var r = rotation + (Math.random() * inaccuracyModifier) - (inaccuracyModifier / 2);
+                            scene.unshift(new Projectile(pX, pY, r, vX, vY));
                             var a = new Audio(sounds.shoot);
                             a.play();
                         });
@@ -191,13 +201,14 @@
     };
 
     var Projectile = function(startX, startY, startDir, startVX, startVY) {
+        var inaccuracyModifier = 100;
         var x = startX,
             y = startY,
             rotation = startDir,
             vX = startVX,
             vY = startVY,
             velocity = 10,
-            ttl = 60,
+            ttl = 50 + Math.floor(Math.random() * 5),
             aliveFor = 0;
         return {
             render: function() {
